@@ -124,6 +124,9 @@ class Scoro(object):
         Fetch all the accounting objects.
         """
         response, accts = self.fetch("financeObjects", action="list")
+        if not response:
+            return {}
+
         for a in accts:
             self.finance_objects[a["object_id"]] = a["name"]
         return self.finance_objects

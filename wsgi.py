@@ -3,6 +3,7 @@ import os
 import sys
 import logging
 
+from flask import Flask
 from scoro2clearbooks.utils import run_sync
 
 

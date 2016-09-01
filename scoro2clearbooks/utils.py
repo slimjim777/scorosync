@@ -1,11 +1,10 @@
 import sys
-import configparser
+import os
 import logging
 from scoro2clearbooks.scoro import Scoro
 from scoro2clearbooks.clearbooks import ClearBooks
 
 logger = logging.getLogger("utils")
-
 
 
 def run_sync():
@@ -17,7 +16,6 @@ def run_sync():
     clearbooks = ClearBooks(config["clearbooks"]["api_key"])
     clearbooks_customers = clearbooks.list_customers()
     clearbooks_accounts = clearbooks.list_account_codes()
-    print("CB_CUST________________________", clearbooks_customers)
 
     # Cache the accounting objects from Scoro
     c = config["scoro"]
@@ -34,11 +32,9 @@ def run_sync():
 
         # Get the full invoice details
         invoice = scoro.invoice(inv["id"])
-        print("\n***\n", invoice)
-        
+
         # Fetch the customer from Scoro
         customer = scoro.contact(invoice["company_id"])
-        print("CUSTOMER\n", customer)
 
         # Check if the customer is already on Clearbooks
         cust_name = customer["name"].replace("&amp;", "&")
@@ -48,7 +44,6 @@ def run_sync():
             # Create the customer in ClearBooks
             cb_customer = scoro.clearbooks_customer(customer)
             cb_cust_id = clearbooks.create_customer(cb_customer)
-        print("CB_CUSTOMER", cb_cust_id)
 
         # Get the invoice project
         if invoice.get("project_id"):
@@ -59,24 +54,18 @@ def run_sync():
 
         # Map fields and create the invoice in ClearBooks
         cb_invoice = scoro.clearbooks_invoice(cb_cust_id, invoice, clearbooks_accounts)
-        print("\nCB INVOICE\n", cb_invoice)
         #clearbooks.create_invoice(cb_invoice)
 
 
 def _read_config():
-    cfg = configparser.ConfigParser()
-    cfg.read("settings.ini")
-
-    options = {"scoro": {}, "clearbooks": {}}
-
-    # Get the Scoro options
-    options_scoro = cfg.options("scoro")
-    for o in options_scoro:
-        options["scoro"][o] = cfg.get("scoro", o)
-
-    # Get the ClearBooks options
-    options_scoro = cfg.options("clearbooks")
-    for o in options_scoro:
-        options["clearbooks"][o] = cfg.get("clearbooks", o)
-
-    return options
+    return {
+        "scoro": {
+            "base_url": os.environ.get("SCORO_BASE_URL", "url_not_set/"),
+            "api_key": os.environ.get("SCORO_API_KEY", "api_not_set"),
+            "lang": os.environ.get("SCORO_LANG", "eng"),
+            "company_account_id": os.environ.get("SCORO_ACCOUNT_ID", "account_id"),
+        },
+        "clearbooks": {
+            "api_key": os.environ.get("CLEARBOOKS_API_KEY", "api_not_set"),
+        },
+    }
