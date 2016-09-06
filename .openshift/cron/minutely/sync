@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ `date +%H:%M` == "22:00" ]
+then
+    date > $OPENSHIFT_LOG_DIR/last_date_cron_ran
+
+    cd $OPENSHIFT_REPO_DIR
+
+    python sync.py
+fi

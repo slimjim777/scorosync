@@ -47,7 +47,7 @@ class ClearBooks(object):
         Create customer.
         """
         body = """
-            <cb:createEntity>
+            <ns1:createEntity>
             <entity
                 company_name="{company_name}"
                 building="{building}"
@@ -65,7 +65,7 @@ class ClearBooks(object):
                 external_id="{external_id}">
                 <customer default_account_code="0" default_vat_rate="0.00" default_credit_terms="30" />
             </entity>
-            </cb:createEntity>
+            </ns1:createEntity>
         """.format(**customer)
 
         payload = self.REQUEST.format(**{"api_key": self.api_key, "body": body})
@@ -80,13 +80,14 @@ class ClearBooks(object):
 
     def _invoice_items(self, items):
         body = """
-        <cb:Item>
-            <unitPrice>{unitPrice}</unitPrice>
-            <quantity>{quantity}</quantity>
-            <type>{type}</type>
-            <vatRate>{vatRate}</vatRate>
-            <description>{description}</description>
-        </cb:Item>
+        <ns1:Item
+            vatRate="{vatRate}"
+            project="0"
+            type="{type}"
+            quantity="{quantity}"
+            unitPrice="{unitPrice}">
+                <description>{description}</description>
+        </ns1:Item>
         """
         xml = ""
         for i in items:
@@ -99,19 +100,26 @@ class ClearBooks(object):
         """
         invoice["item_body"] = self._invoice_items(invoice["items"])
         body = """
-            <cb:createInvoice>
+            <ns1:createInvoice>
             <invoice
+                invoice_prefix="INV"
+                invoice_number="{invoice_number}"
                 entityId="{entityId}"
-                dateCreated="{dateCreated}"
                 dateDue="{dateDue}"
-                creditTerms="30">
-                <type>sales</type>
-                <description>{description}</description>
+                dateCreated="{dateCreated}"
+                type="sales"
+                creditTerms="30"
+                project="0"
+                status="approved">
                 <items>
                     {item_body}
                 </items>
+                <description>{description}</description>
+                <reference>{reference}</reference>
+                <type>sales</type>
             </invoice>
-            </cb:createInvoice>
+            
+            </ns1:createInvoice>
         """.format(**invoice)
 
         payload = self.REQUEST.format(**{"api_key": self.api_key, "body": body})
@@ -121,8 +129,7 @@ class ClearBooks(object):
         response = requests.post(self.URL, data=payload, headers=self.HEADERS)
 
         dom = parseString(response.text)
-        print("-----\n", dom.toprettyxml())
-        el = dom.getElementsByTagName("ns1:createInvoiceReturn")[0]
+        el = dom.getElementsByTagName("createInvoiceReturn")[0]
 
         inv = {
             "invoice_id": el.getAttribute("invoice_id"),
@@ -133,10 +140,10 @@ class ClearBooks(object):
 
     def list_invoices(self, fromDate):
         body = """
-            <cb:listInvoices>
+            <ns1:listInvoices>
             <query ledger="sales">
             </query>
-            </cb:listInvoices>
+            </ns1:listInvoices>
         """
 
         payload = self.REQUEST.format(**{"api_key": self.api_key, "body": body})
@@ -170,10 +177,10 @@ class ClearBooks(object):
         Fetch all the customers.
         """
         body = """
-            <cb:listEntities>
+            <ns1:listEntities>
             <query type="customer">
             </query>
-            </cb:listEntities>
+            </ns1:listEntities>
         """
 
         payload = self.REQUEST.format(**{"api_key": self.api_key, "body": body})
@@ -195,8 +202,8 @@ class ClearBooks(object):
         Fetch all the account codes.
         """
         body = """
-            <cb:listAccountCodes>
-            </cb:listAccountCodes>
+            <ns1:listAccountCodes>
+            </ns1:listAccountCodes>
         """
         dom = self._post(body, "listAccountCodes")
         records = dom.getElementsByTagName("ns1:AccountCode")
@@ -206,4 +213,3 @@ class ClearBooks(object):
             account_name = el.getAttribute("account_name").replace("&amp;", "&")
             accounts[account_name] = el.getAttribute("id")
         return accounts
-

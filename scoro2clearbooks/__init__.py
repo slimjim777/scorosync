@@ -18,8 +18,12 @@ def run():
     """
     Run a sync of the Scoro to ClearBooks process
     """
-    run_sync()
-    return 'Complete'
+    errors = run_sync()
+
+    if len(errors) == 0:
+        return "Complete"
+    else:
+        return "Complete with {} errors".format(len(errors))
 
 
 @app.errorhandler(500)

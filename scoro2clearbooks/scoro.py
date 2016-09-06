@@ -10,7 +10,7 @@ class Scoro(object):
     """
     Interact with the Scoro API.
     """
-    PER_PAGE = 20
+    PER_PAGE = 40
     products = {}
     product_groups = {}
     finance_objects = {}
@@ -46,6 +46,7 @@ class Scoro(object):
         if results["status"] == "OK":
             return True, results.get("data")
         else:
+            logger.error(results)
             return False, results.get("message")
 
     def invoices(self):
@@ -55,7 +56,7 @@ class Scoro(object):
         logger.info("Fetch unpaid invoices")
         options = {
             "filter": {
-                "custom_fields": {"clearbooksref": ""},
+                "custom_fields": {"c_clearbooksref": ""},
                 "date": {"from": "2016-08-16"},
             }
         }
@@ -210,7 +211,6 @@ class Scoro(object):
             # Get the product and create the description
             prod = self.product(l["product_id"])
             d = "{0}\n{1}".format(prod["name"], l.get("comment", ""))
-            #grp = prod.get("group", "")
 
             # Convert the finance object ID to a name
             acct_name = self.accounting_object(l["finance_object_id"])
@@ -224,10 +224,11 @@ class Scoro(object):
                 "quantity": l["amount"],
                 "description": d,
                 "type": cb_acct_id,
-                "vatRate": l["vat"],
+                "vatRate": float(l["vat"]) / 100.0,
             })
 
         return {
+            "invoice_number": i.get("no"),
             "entityId": customer_id,
             "dateCreated": i.get("date"),
             "dateDue": i.get("deadline"),
@@ -237,3 +238,15 @@ class Scoro(object):
             "type": "sales",
             "items": items,
         }
+
+    def update_invoice(self, invoice, cb_inv_no):
+        """
+        Update the custom field on the invoice with the number from ClearBooks.
+        """
+        invoice["custom_fields"]["c_clearbooksref"] = cb_inv_no
+        options = {
+            "request": invoice
+        }
+        
+        return self.fetch(
+            "invoices", action="modify", record_id=invoice["id"], options=options)

@@ -26,35 +26,50 @@ def run_sync():
     invoices = scoro.invoices()
 
     # Process each of the Scoro invoices
+    errors = []
     for inv in invoices:
-        if inv["no"] != "4489":
-            continue
+        try:
+            if inv["no"] != "4492":
+                continue
 
-        # Get the full invoice details
-        invoice = scoro.invoice(inv["id"])
+            logger.info("Process invoice {}".format(inv["no"]))
 
-        # Fetch the customer from Scoro
-        customer = scoro.contact(invoice["company_id"])
+            # Get the full invoice details
+            invoice = scoro.invoice(inv["id"])
 
-        # Check if the customer is already on Clearbooks
-        cust_name = customer["name"].replace("&amp;", "&")
-        if clearbooks_customers.get(cust_name):
-            cb_cust_id = clearbooks_customers.get(cust_name)
-        else:
-            # Create the customer in ClearBooks
-            cb_customer = scoro.clearbooks_customer(customer)
-            cb_cust_id = clearbooks.create_customer(cb_customer)
+            # Fetch the customer from Scoro
+            customer = scoro.contact(invoice["company_id"])
 
-        # Get the invoice project
-        if invoice.get("project_id"):
-            project = scoro.project(invoice.get("project_id"))
-            invoice["project_name"] = project.get("description", "")
-        else:
-            invoice["project_name"] = ""
+            # Check if the customer is already on Clearbooks
+            cust_name = customer["name"].replace("&amp;", "&")
+            if clearbooks_customers.get(cust_name):
+                cb_cust_id = clearbooks_customers.get(cust_name)
+            else:
+                # Create the customer in ClearBooks
+                cb_customer = scoro.clearbooks_customer(customer)
+                cb_cust_id = clearbooks.create_customer(cb_customer)
 
-        # Map fields and create the invoice in ClearBooks
-        cb_invoice = scoro.clearbooks_invoice(cb_cust_id, invoice, clearbooks_accounts)
-        #clearbooks.create_invoice(cb_invoice)
+            # Get the invoice project
+            if invoice.get("project_id"):
+                project = scoro.project(invoice.get("project_id"))
+                invoice["project_name"] = project.get("description", "")
+            else:
+                invoice["project_name"] = ""
+
+            # Map fields and create the invoice in ClearBooks
+            logger.info("Create the invoice in ClearBooks")
+            cb_invoice = scoro.clearbooks_invoice(cb_cust_id, invoice, clearbooks_accounts)
+            cb_inv = clearbooks.create_invoice(cb_invoice)
+
+            # Update the Scoro invoice to show that it has been processed
+            logger.info("Update the Scoro invoice")
+            response = scoro.update_invoice(invoice, cb_inv["invoice_number"])
+
+        except Exception as e:
+            logger.error("Error processing invoice {}: {}".format(inv["no"], e))
+            errors.append({"invoice": inv["no"], "error": str(e)})
+
+    return errors
 
 
 def _read_config():
