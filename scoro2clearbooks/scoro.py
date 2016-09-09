@@ -6,6 +6,9 @@ import pycountry
 logger = logging.getLogger("scoro")
 
 
+FROM_DATE = "2016-09-01"
+
+
 class Scoro(object):
     """
     Interact with the Scoro API.
@@ -57,7 +60,7 @@ class Scoro(object):
         options = {
             "filter": {
                 "custom_fields": {"c_clearbooksref": ""},
-                "date": {"from": "2016-08-16"},
+                "date": {"from": FROM_DATE},
             }
         }
         status, records = self.fetch("invoices", options=options)
