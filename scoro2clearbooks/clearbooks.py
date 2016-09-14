@@ -1,6 +1,10 @@
 import requests
+import logging
 from xml.dom.minidom import parse
 from xml.dom.minidom import parseString
+
+
+logger = logging.getLogger("clearbooks")
 
 
 class ClearBooks(object):

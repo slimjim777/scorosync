@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
 import requests
 import json
 import logging
 import pycountry
+import html
 
 logger = logging.getLogger("scoro")
 
@@ -171,6 +173,8 @@ class Scoro(object):
 
             # Country codes need to be a two-character format
             if a.get("country"):
+                if a["country"] == "United Kingdom":
+                    a["country"] = "GBR"
                 country = pycountry.countries.get(alpha3=a.get("country").upper()).alpha2
             else:
                 country = ""
@@ -205,6 +209,9 @@ class Scoro(object):
             "external_id": a.get("contact_id"),
         }
 
+    def clean_text(self, s):
+        return s.encode("latin-1", "ignore").decode("latin-1").replace("£", "GBP")
+
     def clearbooks_invoice(self, customer_id, i, clearbooks_accounts):
         """
         Converts a Scoro invoice record to a ClearBooks invoice.
@@ -225,7 +232,7 @@ class Scoro(object):
             items.append({
                 "unitPrice": l["price"],
                 "quantity": l["amount"],
-                "description": d,
+                "description": d.encode("latin-1", "ignore").decode("latin-1").replace("£", "GBP"),
                 "type": cb_acct_id,
                 "vatRate": float(l["vat"]) / 100.0,
             })
@@ -235,9 +242,9 @@ class Scoro(object):
             "entityId": customer_id,
             "dateCreated": i.get("date"),
             "dateDue": i.get("deadline"),
-            "description": i.get("description"),
+            "description": html.escape(self.clean_text(i.get("description", ""))),
             "creditTerms": "30",
-            "reference": i.get("project_name"),
+            "reference": html.escape(self.clean_text(i.get("project_name", ""))[:255]),
             "type": "sales",
             "items": items,
         }

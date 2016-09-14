@@ -24,13 +24,16 @@ def run_sync():
 
     # Fetch the unpaid invoices from Scoro
     invoices = scoro.invoices()
+    # for inv in invoices:
+    #     print(inv["no"])
+    # return
 
     # Process each of the Scoro invoices
     errors = []
     for inv in invoices:
         try:
-            if inv["no"] != "4492":
-                continue
+            # if inv["no"] != "4508":
+            #     continue
 
             logger.info("Process invoice {}".format(inv["no"]))
 
@@ -46,13 +49,17 @@ def run_sync():
                 cb_cust_id = clearbooks_customers.get(cust_name)
             else:
                 # Create the customer in ClearBooks
+                logger.info("Create the ClearBooks customer")
                 cb_customer = scoro.clearbooks_customer(customer)
                 cb_cust_id = clearbooks.create_customer(cb_customer)
+                clearbooks_customers[cust_name] = cb_cust_id
 
             # Get the invoice project
             if invoice.get("project_id"):
+                logger.info("Get the project")
                 project = scoro.project(invoice.get("project_id"))
-                invoice["project_name"] = project.get("description", "")
+                if project:
+                    invoice["project_name"] = project.get("description", "")
             else:
                 invoice["project_name"] = ""
 
