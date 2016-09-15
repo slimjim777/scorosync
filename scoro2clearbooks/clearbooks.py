@@ -122,7 +122,6 @@ class ClearBooks(object):
                 <reference>{reference}</reference>
                 <type>sales</type>
             </invoice>
-            
             </ns1:createInvoice>
         """.format(**invoice)
 
@@ -133,6 +132,7 @@ class ClearBooks(object):
         response = requests.post(self.URL, data=payload, headers=self.HEADERS)
 
         dom = parseString(response.text)
+        #print( dom.toprettyxml() )
         el = dom.getElementsByTagName("createInvoiceReturn")[0]
 
         inv = {

@@ -4,6 +4,8 @@ import json
 import logging
 import pycountry
 import html
+from urllib.parse import urlencode
+
 
 logger = logging.getLogger("scoro")
 
@@ -212,11 +214,21 @@ class Scoro(object):
     def clean_text(self, s):
         return s.encode("latin-1", "ignore").decode("latin-1").replace("£", "GBP")
 
+    def clearbooks_discount(self, percent, amount):
+        return {
+            "unitPrice": amount,
+            "quantity": 1.0,
+            "description": "Discount {}%".format(percent),
+            "type": "3001001",
+            "vatRate": 0.0,
+        }
+
     def clearbooks_invoice(self, customer_id, i, clearbooks_accounts):
         """
         Converts a Scoro invoice record to a ClearBooks invoice.
         """
         items = []
+        amount = 0.0
         for l in i.get("lines", []):
             # Get the product and create the description
             prod = self.product(l["product_id"])
@@ -232,17 +244,23 @@ class Scoro(object):
             items.append({
                 "unitPrice": l["price"],
                 "quantity": l["amount"],
-                "description": d.encode("latin-1", "ignore").decode("latin-1").replace("£", "GBP"),
+                "description": d.encode(
+                    "latin-1", "ignore").decode("latin-1").replace("£", "GBP").replace("\xa0", "* "),
                 "type": cb_acct_id,
                 "vatRate": float(l["vat"]) / 100.0,
             })
+            amount += float(l.get("sum", 0.0))
+
+            if float(i.get("discount", 0.0)) > 0.0:
+                item = self.clearbooks_discount(i.get("discount"), float(i.get("sum", 0.0)) - amount)
+                items.append(item)
 
         return {
             "invoice_number": i.get("no"),
             "entityId": customer_id,
             "dateCreated": i.get("date"),
             "dateDue": i.get("deadline"),
-            "description": html.escape(self.clean_text(i.get("description", ""))),
+            "description": urlencode(self.clean_text(i.get("description", ""))),
             "creditTerms": "30",
             "reference": html.escape(self.clean_text(i.get("project_name", ""))[:255]),
             "type": "sales",

@@ -5,6 +5,8 @@ from scoro2clearbooks.scoro import Scoro
 from scoro2clearbooks.clearbooks import ClearBooks
 
 logger = logging.getLogger("utils")
+logging.getLogger("requests").setLevel(logging.ERROR)
+logging.getLogger("urllib3").setLevel(logging.ERROR)
 
 
 def run_sync():
@@ -32,7 +34,7 @@ def run_sync():
     errors = []
     for inv in invoices:
         try:
-            # if inv["no"] != "4508":
+            # if inv["no"] != "4517":
             #     continue
 
             logger.info("Process invoice {}".format(inv["no"]))
@@ -44,7 +46,7 @@ def run_sync():
             customer = scoro.contact(invoice["company_id"])
 
             # Check if the customer is already on Clearbooks
-            cust_name = customer["name"].replace("&amp;", "&")
+            cust_name = customer["name"].replace("&amp;", "&").replace("&#039;", "'")
             if clearbooks_customers.get(cust_name):
                 cb_cust_id = clearbooks_customers.get(cust_name)
             else:
@@ -55,7 +57,7 @@ def run_sync():
                 clearbooks_customers[cust_name] = cb_cust_id
 
             # Get the invoice project
-            if invoice.get("project_id"):
+            if invoice.get("project_id", "0") != "0":
                 logger.info("Get the project")
                 project = scoro.project(invoice.get("project_id"))
                 if project:
@@ -66,6 +68,10 @@ def run_sync():
             # Map fields and create the invoice in ClearBooks
             logger.info("Create the invoice in ClearBooks")
             cb_invoice = scoro.clearbooks_invoice(cb_cust_id, invoice, clearbooks_accounts)
+
+            # print(invoice)
+            # print("---")
+            # print(cb_invoice)
             cb_inv = clearbooks.create_invoice(cb_invoice)
 
             # Update the Scoro invoice to show that it has been processed
