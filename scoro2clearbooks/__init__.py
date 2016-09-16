@@ -21,7 +21,7 @@ def run():
     errors = run_sync()
 
     if len(errors) == 0:
-        return "Complete"
+        return "Completed successfully"
     else:
         messages = ""
         for e in errors:
