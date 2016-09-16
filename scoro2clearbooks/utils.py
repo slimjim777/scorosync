@@ -36,7 +36,6 @@ def run_sync():
         try:
             # if inv["no"] != "4517":
             #     continue
-
             logger.info("Process invoice {}".format(inv["no"]))
 
             # Get the full invoice details

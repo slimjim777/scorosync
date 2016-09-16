@@ -11,4 +11,7 @@ errors = run_sync()
 if len(errors) == 0:
     logger.info("Complete")
 else:
-    logger.info("Complete with {} errors".format(len(errors)))
+    messages = ""
+    for e in errors:
+        messages += "INV{}: {}\n".format(e["invoice"], e["error"])
+    logger.info("Complete with {} errors\n{}".format(len(errors), messages))

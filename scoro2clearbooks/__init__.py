@@ -23,7 +23,10 @@ def run():
     if len(errors) == 0:
         return "Complete"
     else:
-        return "Complete with {} errors".format(len(errors))
+        messages = ""
+        for e in errors:
+            messages += "INV{}: {}\n".format(e["invoice"], e["error"])
+        return "Complete with {} errors\n{}".format(len(errors), messages)
 
 
 @app.errorhandler(500)
