@@ -183,6 +183,8 @@ class Scoro(object):
 
         # Contact details
         contact = c.get("means_of_contact", {})
+        if isinstance(contact, list):
+            contact = {}
         emails = contact.get("email", [])
         email = emails[0] if len(emails) > 0 else ""
         phones = contact.get("phone", [])
