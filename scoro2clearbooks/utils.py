@@ -60,6 +60,7 @@ def run_sync():
                 logger.info("Get the project")
                 project = scoro.project(invoice.get("project_id"))
                 if project:
+                    invoice["project_code"] = project.get("project_name", "")
                     invoice["project_name"] = project.get("description", "")
             else:
                 invoice["project_name"] = ""

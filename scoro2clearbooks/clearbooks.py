@@ -126,13 +126,14 @@ class ClearBooks(object):
         """.format(**invoice)
 
         payload = self.REQUEST.format(**{"api_key": self.api_key, "body": body})
+        # print(payload)
         headers = self.HEADERS.copy()
         headers["SOAPAction"] = self.URI + "#createInvoice"
 
         response = requests.post(self.URL, data=payload, headers=self.HEADERS)
 
         dom = parseString(response.text)
-        #print( dom.toprettyxml() )
+        # print( dom.toprettyxml() )
         el = dom.getElementsByTagName("createInvoiceReturn")[0]
 
         inv = {

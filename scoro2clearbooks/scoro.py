@@ -242,12 +242,12 @@ class Scoro(object):
             # Look up the account code from the ClearBooks dictionary
             # Default: Other Income = 3001001
             cb_acct_id = clearbooks_accounts.get(acct_name, "3001001")
+            
 
             items.append({
                 "unitPrice": l["price"],
                 "quantity": l["amount"],
-                "description": d.encode(
-                    "latin-1", "ignore").decode("latin-1").replace("£", "GBP").replace("\xa0", "* "),
+                "description": prod["name"],
                 "type": cb_acct_id,
                 "vatRate": float(l["vat"]) / 100.0,
             })
@@ -264,7 +264,7 @@ class Scoro(object):
             "dateDue": i.get("deadline"),
             "description": urlencode(self.clean_text(i.get("description", ""))),
             "creditTerms": "30",
-            "reference": html.escape(self.clean_text(i.get("project_name", ""))[:255]),
+            "reference": html.escape(self.clean_text(i.get("project_code", ""))[:255]),
             "type": "sales",
             "items": items,
         }
