@@ -34,8 +34,6 @@ def run_sync():
     errors = []
     for inv in invoices:
         try:
-            # if inv["no"] != "4517":
-            #     continue
             logger.info("Process invoice {}".format(inv["no"]))
 
             # Get the full invoice details
@@ -52,8 +50,12 @@ def run_sync():
                 # Create the customer in ClearBooks
                 logger.info("Create the ClearBooks customer")
                 cb_customer = scoro.clearbooks_customer(customer)
+                print(cb_customer)
+
                 cb_cust_id = clearbooks.create_customer(cb_customer)
                 clearbooks_customers[cust_name] = cb_cust_id
+            print("=================")
+            print(cb_cust_id)
 
             # Get the invoice project
             if invoice.get("project_id", "0") != "0":
@@ -69,9 +71,6 @@ def run_sync():
             logger.info("Create the invoice in ClearBooks")
             cb_invoice = scoro.clearbooks_invoice(cb_cust_id, invoice, clearbooks_accounts)
 
-            # print(invoice)
-            # print("---")
-            # print(cb_invoice)
             cb_inv = clearbooks.create_invoice(cb_invoice)
 
             # Update the Scoro invoice to show that it has been processed

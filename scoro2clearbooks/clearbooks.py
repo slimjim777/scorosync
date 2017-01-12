@@ -79,8 +79,9 @@ class ClearBooks(object):
         response = requests.post(self.URL, data=payload, headers=self.HEADERS)
 
         dom = parseString(response.text)
+        # print( dom.toprettyxml() )
         el = dom.getElementsByTagName("createEntityReturn")[0]
-        return el.nodeValue
+        return el.firstChild.nodeValue
 
     def _invoice_items(self, items):
         body = """

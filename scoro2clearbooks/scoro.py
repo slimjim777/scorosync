@@ -36,7 +36,7 @@ class Scoro(object):
         if action:
             url += "/" + action
         if record_id:
-            url += "/" + record_id
+            url += "/" + str(record_id)
         return url
 
     def fetch(self, method, action=None, record_id=None, options=None):
@@ -174,7 +174,7 @@ class Scoro(object):
                 address2 = " ".join(lines[2:])
 
             # Country codes need to be a two-character format
-            if a.get("country"):
+            if a.get("country") and len(a.get("country")) > 0:
                 if a["country"] == "United Kingdom":
                     a["country"] = "GBR"
                 country = pycountry.countries.get(alpha3=a.get("country").upper()).alpha2
@@ -183,6 +183,8 @@ class Scoro(object):
 
         # Contact details
         contact = c.get("means_of_contact", {})
+        if not contact:
+            contact = {}
         if isinstance(contact, list):
             contact = {}
         emails = contact.get("email", [])
@@ -231,6 +233,20 @@ class Scoro(object):
         """
         items = []
         amount = 0.0
+        
+        if not i.get("lines"):
+            return {
+                "invoice_number": i.get("no"),
+                "entityId": customer_id,
+                "dateCreated": i.get("date"),
+                "dateDue": i.get("deadline"),
+                "description": urlencode(self.clean_text(i.get("description", ""))),
+                "creditTerms": "30",
+                "reference": html.escape(self.clean_text(i.get("project_code", ""))[:255]),
+                "type": "sales",
+                "items": items,
+            }
+        
         for l in i.get("lines", []):
             # Get the product and create the description
             prod = self.product(l["product_id"])
