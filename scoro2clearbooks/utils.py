@@ -50,12 +50,9 @@ def run_sync():
                 # Create the customer in ClearBooks
                 logger.info("Create the ClearBooks customer")
                 cb_customer = scoro.clearbooks_customer(customer)
-                print(cb_customer)
 
                 cb_cust_id = clearbooks.create_customer(cb_customer)
                 clearbooks_customers[cust_name] = cb_cust_id
-            print("=================")
-            print(cb_cust_id)
 
             # Get the invoice project
             if invoice.get("project_id", "0") != "0":

@@ -198,11 +198,11 @@ class Scoro(object):
         website = websites[0] if len(websites) > 0 else ""
 
         return {
-            "company_name": company,
-            "contact_name": contact_name,
-            "building": building,
-            "address1": address1,
-            "address2": address2,
+            "company_name": self.clean_text(company),
+            "contact_name": self.clean_text(contact_name),
+            "building": self.clean_text(building),
+            "address1": self.clean_text(address1),
+            "address2": self.clean_text(address2),
             "town": a.get("city"),
             "county": a.get("county"),
             "country": country,
@@ -263,7 +263,7 @@ class Scoro(object):
             items.append({
                 "unitPrice": l["price"],
                 "quantity": l["amount"],
-                "description": prod["name"],
+                "description": self.clean_text(prod["name"]),
                 "type": cb_acct_id,
                 "vatRate": float(l["vat"]) / 100.0,
             })
@@ -278,7 +278,7 @@ class Scoro(object):
             "entityId": customer_id,
             "dateCreated": i.get("date"),
             "dateDue": i.get("deadline"),
-            "description": urlencode(self.clean_text(i.get("description", ""))),
+            "description": self.clean_text(i.get("description", "")),
             "creditTerms": "30",
             "reference": html.escape(self.clean_text(i.get("project_code", ""))[:255]),
             "type": "sales",
