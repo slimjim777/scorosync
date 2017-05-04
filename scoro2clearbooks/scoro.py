@@ -136,7 +136,10 @@ class Scoro(object):
             return {}
 
         for a in accts:
-            self.finance_objects[a["object_id"]] = a["name"]
+            if a["name"]:
+                self.finance_objects[a["object_id"]] = a["name"].replace("&amp;", "&")
+            else:
+                self.finance_objects[a["object_id"]] = ""
         return self.finance_objects
 
     def clearbooks_customer(self, c):
@@ -257,6 +260,7 @@ class Scoro(object):
 
             # Look up the account code from the ClearBooks dictionary
             # Default: Other Income = 3001001
+            print(acct_name)
             cb_acct_id = clearbooks_accounts.get(acct_name, "3001001")
             
 
