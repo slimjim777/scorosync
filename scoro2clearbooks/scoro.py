@@ -249,8 +249,12 @@ class Scoro(object):
                 "type": "sales",
                 "items": items,
             }
-        
+
         for l in i.get("lines", []):
+            # Ignore invalid group lines with no value
+            if l["product_id"] == '-1' and l["amount"] == '0.000000':
+                continue
+
             # Get the product and create the description
             prod = self.product(l["product_id"])
             d = "{0}\n{1}".format(prod["name"], l.get("comment", ""))
