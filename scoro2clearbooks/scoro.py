@@ -236,7 +236,7 @@ class Scoro(object):
         """
         items = []
         amount = 0.0
-        
+
         if not i.get("lines"):
             return {
                 "invoice_number": i.get("no"),
@@ -252,7 +252,7 @@ class Scoro(object):
 
         for l in i.get("lines", []):
             # Ignore invalid group lines with no value
-            if l["product_id"] == '-1' and l["amount"] == '0.000000':
+            if int(l["product_id"]) == -1 and l["amount"] == '0.000000':
                 continue
 
             # Get the product and create the description
@@ -266,7 +266,7 @@ class Scoro(object):
             # Default: Other Income = 3001001
             print(acct_name)
             cb_acct_id = clearbooks_accounts.get(acct_name, "3001001")
-            
+
 
             items.append({
                 "unitPrice": l["price"],
@@ -301,6 +301,6 @@ class Scoro(object):
         options = {
             "request": invoice
         }
-        
+
         return self.fetch(
             "invoices", action="modify", record_id=invoice["id"], options=options)
