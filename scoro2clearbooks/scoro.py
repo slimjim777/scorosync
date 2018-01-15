@@ -251,6 +251,7 @@ class Scoro(object):
             }
 
         for l in i.get("lines", []):
+            #print(l)
             # Ignore invalid group lines with no value
             if int(l["product_id"]) == -1 and l["amount"] == '0.000000':
                 continue
@@ -260,6 +261,11 @@ class Scoro(object):
             d = "{0}\n{1}".format(prod["name"], l.get("comment", ""))
 
             # Convert the finance object ID to a name
+            if l["finance_object_id"] == 0:
+                logger.info(
+                    "Error: the Accounting Object is not set: %s: %s",
+                    i.get("no"),
+                    l.get("comment", ""))
             acct_name = self.accounting_object(l["finance_object_id"])
 
             # Look up the account code from the ClearBooks dictionary
