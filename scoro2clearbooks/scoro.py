@@ -303,6 +303,15 @@ class Scoro(object):
         """
         Update the custom field on the invoice with the number from ClearBooks.
         """
+        # Remove the finance_account_id as finance accounts is unused
+        if invoice["lines"]:
+            lines = []
+            for l in invoice["lines"]:
+                if "finance_account_id" in l:
+                    del l["finance_account_id"]
+                lines.append(l)
+            invoice["lines"] = lines
+
         invoice["custom_fields"]["c_clearbooksref"] = cb_inv_no
         options = {
             "request": invoice
